@@ -1,5 +1,6 @@
 package com.example.android.miwok;
 
+import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -11,6 +12,25 @@ import java.util.ArrayList;
 
 public class FamilyActivity extends AppCompatActivity {
     private MediaPlayer mMediaPlayer;
+
+    private AudioManager mAudioManager;
+
+    AudioManager.OnAudioFocusChangeListener mOnAudioFocusChangeListner =
+            new AudioManager.OnAudioFocusChangeListener() {
+                @Override
+                public void onAudioFocusChange(int focusChange) {
+                    if (focusChange == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT || focusChange== AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK){
+                        mMediaPlayer.pause();
+                        mMediaPlayer.seekTo(0);
+                    }
+                    else if (focusChange == AudioManager.AUDIOFOCUS_GAIN){
+                        mMediaPlayer.start();
+                    }
+                    else if (focusChange == AudioManager.AUDIOFOCUS_LOSS){
+                        releaseMediaPlayer();
+                    }
+                }
+            };
 
     private MediaPlayer.OnCompletionListener mCompletionListener = new MediaPlayer.OnCompletionListener() {
         @Override
@@ -53,16 +73,27 @@ public class FamilyActivity extends AppCompatActivity {
                  */
                 releaseMediaPlayer();
 
-                mMediaPlayer = MediaPlayer.create(FamilyActivity.this, family_member.getAudioResourceId());
+                //Request audiofocus for playback
+                int result = mAudioManager.requestAudioFocus(mOnAudioFocusChangeListner,
+                        //use the music stream
+                        AudioManager.STREAM_MUSIC,
+                        //Request permanent focus
+                        AudioManager.AUDIOFOCUS_GAIN_TRANSIENT);
+                if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
+                    //we have AudioFocus now
 
-                //start autio file
-                mMediaPlayer.start();
+                    //create and setup  the {@link MediaPlayer}
+                    mMediaPlayer = MediaPlayer.create(FamilyActivity.this, family_member.getAudioResourceId());
 
-                /*
-                 setup a listener on the mediaplayer so that we can stop and release the media player
-                 once the audio has finished playing
-                 */
-                mMediaPlayer.setOnCompletionListener(mCompletionListener);
+                    //start audio file
+                    mMediaPlayer.start();
+
+                    /*
+                     setup a listener on the mediaplayer so that we can stop and release the media player
+                     once the audio has finished playing
+                     */
+                    mMediaPlayer.setOnCompletionListener(mCompletionListener);
+                }
             }
         });
     }
