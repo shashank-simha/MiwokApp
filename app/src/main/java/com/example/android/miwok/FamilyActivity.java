@@ -1,5 +1,6 @@
 package com.example.android.miwok;
 
+import android.content.Context;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.support.v7.app.AppCompatActivity;
@@ -45,6 +46,8 @@ public class FamilyActivity extends AppCompatActivity {
         setContentView(R.layout.word_list);
 
         final ArrayList<Word> family = new ArrayList<Word>();
+
+        mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 
         family.add(new Word("Father", "әpә", R.drawable.family_father, R.raw.family_father));
         family.add(new Word("Mother", "әṭa", R.drawable.family_mother, R.raw.family_mother));
@@ -118,6 +121,8 @@ public class FamilyActivity extends AppCompatActivity {
             // setting the media player to null is an easy way to tell that the media player
             // is not configured to play an audio file at the moment.
             mMediaPlayer = null;
+
+            mAudioManager.abandonAudioFocus(mOnAudioFocusChangeListner);
         }
     }
 }
